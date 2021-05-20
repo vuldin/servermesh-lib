@@ -28,38 +28,36 @@ function getVector(id, cache, vectorAccessor) {
 
   if(cache.length > 0) {
     if(cache.length > id) {
-    /*
-    const latestContainer = cache[cache.length - 1]
-    const latestVector = vectorAccessor(latestContainer)
-    if() {
-    */
       // requested value is cached, skip calculation
       foundInCache = true
     } else {
       // start calculating at end of cache
       pass = cache.length
-      const latestVector = cache[cache.length - 1]
+      const latestVector = vectorAccessor(cache[cache.length - 1])
       bounds = Math.max(Math.abs(latestVector.x), Math.abs(latestVector.y), Math.abs(latestVector.z))
       handleMetBounds(latestVector, bounds)
     }
   }
 
+  let resultingVector
+
   if(!foundInCache) {
     for(; pass < id + 1; pass++) {
-      if(!needsIncrement) {
-        if(bounds === 0) {
-          // only on initial pass, so initial pass isn't -0
-          cache.push(initialVector)
-          //latestContainer.vector = initialVector
-        } else {
-          // set to lowest value within bounds
-          cache.push({ x: parseInt(`-${bounds}`), y: parseInt(`-${bounds}`), z: parseInt(`-${bounds}`)})
+      if(!needsIncrement) { // reset vector
+        if(bounds === 0) { // only on initial pass, prevents -0
+          resultingVector = initialVector
+        } else { // set to lowest value within bounds
+          resultingVector = {
+            x: parseInt(`-${bounds}`),
+            y: parseInt(`-${bounds}`),
+            z: parseInt(`-${bounds}`),
+          }
         }
-      } else {
-        cache.push(addWithinBounds(cache[cache.length - 1], bounds))
+      } else { // increment vector
+        const latestVector = vectorAccessor(cache[cache.length - 1])
+        resultingVector = addWithinBounds(latestVector, bounds)
       }
-
-      handleMetBounds(cache[cache.length - 1], bounds)
+      handleMetBounds(resultingVector, bounds)
     }
   }
 
@@ -71,7 +69,8 @@ function getVector(id, cache, vectorAccessor) {
     z: cache[id].z + startingVector.z
   }
   */
- return cache[id]
+
+  return resultingVector
 }
 
 function metBounds({ x, y, z }, bounds) {
